@@ -108,6 +108,7 @@ LRESULT D3DApp::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 		return 0;
 
+	// WM_SIZE is sent when the user resizes the window.
 	case WM_SIZE:
 		mClientWidth	= LOWORD(lParam);
 		mClientHeight	= HIWORD(lParam);
@@ -128,14 +129,76 @@ LRESULT D3DApp::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 		return 0;
 
+	// WM_DESTROY is sent when the window is being destroyed.
 	case WM_DESTROY:
 		PostQuitMessage(0);
 
 		return 0;
 
+	// The WM_MENUCHAR message is sent when a menu is active and the user presses
+	// a key that does not correspond to any mnemonic or accelerator key.
+	case WM_MENUCHAR:
+		// Don't beep when we alt-enter.
+		return MAKELRESULT(0, MNC_CLOSE);
 
+	// Catch this message so th prevent the window from becoming to small.
+	// If you want to FullScreen but historical none.
+	case WM_GETMINMAXINFO:
+		((MINMAXINFO*)lParam)->ptMinTrackSize.x = 200;
+		((MINMAXINFO*)lParam)->ptMinTrackSize.y = 200;
+		return 0;
 
-
+	case WM_KEYUP:
+		if (wParam == VK_ESCAPE)
+		{
+			PostQuitMessage(0);
+		}
 		
+		return 0;
 	}
+
+	return DefWindowProc(hwnd, msg, wParam, lParam);
+}
+
+
+bool D3DApp::InitMainWindow()
+{
+	WNDCLASS wc;
+	wc.style		= CS_HREDRAW | CS_VREDRAW;
+	wc.lpfnWndProc	= MainWndProc;
+	wc.cbClsExtra	= 0;
+	wc.cbWndExtra	= 0;
+	wc.hInstance	= mhAppInst;
+	wc.hIcon		= LoadIcon(0, IDI_APPLICATION);
+	wc.hCursor		= LoadCursor(0, IDC_ARROW);
+	wc.hbrBackground	= (HBRUSH)GetStockObject(NULL_BRUSH);
+	wc.lpszMenuName		= 0;
+	wc.lpszClassName	= L"MainWnd";
+
+	if (!RegisterClass(&wc))
+	{
+		MessageBox(0, L"RegisterClass Failed.", 0, 0);
+		return false;
+	}
+
+	// Compute window rectangle dimensions based on requested client area dimensions.
+	RECT R = { 0, 0, mClientWidth, mClientHeight };
+	AdjustWindowRect(&R, WS_OVERLAPPEDWINDOW, false);
+	int width = R.right - R.left;
+	int height = R.bottom - R.top;
+
+	mhMainWnd = CreateWindow(L"MainWnd", mMainWndCaption.c_str(),
+		WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, width, height, 0, 0, mhAppInst, 0);
+
+	if (!mhMainWnd)
+	{
+		MessageBox(0, L"CreateWindow Failed", 0, 0);
+		return false;
+	}
+
+	ShowWindow(mhMainWnd, SW_SHOW);
+	UpdateWindow(mhMainWnd);
+
+	return true;
+
 }

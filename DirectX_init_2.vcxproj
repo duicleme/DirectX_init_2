@@ -144,6 +144,7 @@
     <ClCompile Include="InitDirect3DApp.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="crtdbg.h" />
     <ClInclude Include="d3dApp.h" />
     <ClInclude Include="GameTimer.h" />
     <ClInclude Include="windowsx.h" />
